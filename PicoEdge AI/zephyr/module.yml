@@ -1,0 +1,4 @@
+name: picoedge_ai
+build:
+  cmake: .
+  kconfig: Kconfig

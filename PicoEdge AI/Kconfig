@@ -1,0 +1,49 @@
+config PICOEDGE_AI
+    bool "DectroniQ PicoEdge AI Embedded TinyML Library"
+    default n
+    select SMF
+    select SMF_ANCESTOR_SUPPORT
+
+if PICOEDGE_AI
+
+config PE_WINDOW_SIZE
+    int
+    default 128
+    range 16 1024
+
+config PE_AXES
+    int
+    default 3
+    range 1 6
+
+config PE_MAX_REGIMES
+    int
+    default 4
+    range 1 8
+
+config PE_MAX_CLASSES
+    int
+    default 6
+    range 2 16
+
+config PE_MIN_LEARN_WINDOWS
+    int
+    default 25
+    range 5 1000
+
+config PE_ANOMALY_THRESH_PCT
+    int
+    default 75
+    range 1 99
+
+config PE_HYSTERESIS_CLEAR_PCT
+    int
+    default 85
+    range 2 100
+
+config PE_DEBOUNCE_WINDOWS
+    int
+    default 3
+    range 1 32
+
+endif # PICOEDGE_AI
