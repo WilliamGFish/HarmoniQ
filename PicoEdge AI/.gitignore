@@ -1,8 +1,0 @@
-build/
-__pycache__/
-*.so
-*.o
-*.a
-*.pe_pkg
-*.npz
-.pytest_cache/
