@@ -116,7 +116,7 @@ typedef struct __attribute__((packed)) {
     uint16_t crc16;
 } pe_pkg_blob_t;
 
-void pe_extract_features_masked(const float *raw_window, float *out_feats, uint64_t active_feats_mask);
+void pe_extract_features_masked(const float *raw_window, float *out_feats, uint64_t active_feats_mask, const float goertzel_coeffs[4]);
 void pe_core_ad_init(pe_ad_engine_t *eng, uint32_t min_samples, float sensitivity);
 pe_core_status_t pe_core_ad_learn(pe_ad_engine_t *eng, const float *feats, uint64_t mask);
 pe_core_status_t pe_core_ad_detect(const pe_ad_engine_t *eng, const float *feats, uint64_t mask, float *similarity_pct, uint8_t *matched_regime, uint8_t *most_deviant_feat);

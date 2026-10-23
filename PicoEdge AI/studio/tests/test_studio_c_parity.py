@@ -55,7 +55,8 @@ def test_dsp_bit_parity_random_and_sine(c_lib):
         c_lib.pe_extract_features_masked(
             raw_flat.ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
             c_feats.ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
-            mask
+            mask,
+            (ctypes.c_float * 4)(1.902113, 1.457937, 0.000000, -1.618034)
         )
 
         np.testing.assert_allclose(py_feats, c_feats, atol=1e-4, rtol=1e-4)
@@ -77,7 +78,8 @@ def test_feature_masking_parity(c_lib):
         c_lib.pe_extract_features_masked(
             raw_flat.ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
             c_feats.ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
-            mask
+            mask,
+            (ctypes.c_float * 4)(1.902113, 1.457937, 0.000000, -1.618034)
         )
 
         np.testing.assert_allclose(py_feats, c_feats, atol=1e-4, rtol=1e-4)

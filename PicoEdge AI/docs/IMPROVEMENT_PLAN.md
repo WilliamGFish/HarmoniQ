@@ -15,9 +15,9 @@ While the V1 implementation of the PicoEdge AI suite successfully realizes the c
 
 ## 2. Platform & Embedded RTOS Integration
 
-*   **Zephyr LwM2M / CoAP Transport Layer:**
-    The library supports hotloading `.pe_pkg` weight blobs and exporting/importing `.pe_knowledge` blobs. However, the transport layer is currently undefined.
-    *   **Action Item:** Build a Zephyr companion module (`subsys/picoedge_net`) that automatically hooks into Zephyr's LwM2M client to expose PicoEdge telemetry (Anomaly Streak, Active Regime) as IPSO Smart Objects, and supports receiving OTA weight updates.
+*   **DECT NR+ and Zenoh Transport Layer:**
+    The library supports hotloading `.pe_pkg` weight blobs and exporting/importing `.pe_knowledge` blobs. This is designed to integrate natively with DECT NR+ (ETSI 103636 v2.2.1) using Zenoh as the transport protocol.
+    *   **Action Item:** Build a companion module that hooks into the DECT NR+ firmware library using Zenoh publishers and subscribers to expose PicoEdge telemetry (Anomaly Streak, Active Regime, Predictions) and supports receiving OTA weight updates natively over the DECT NR+ mesh.
 *   **Dynamic Axis and Sensor Fusion:**
     `CONFIG_PE_AXES` is currently a compile-time static configuration.
     *   **Action Item:** Evolve the `pe_context` to handle multiple independent sensor streams (e.g., a 3-axis accelerometer and a 1-axis microphone) with separate regimes and feature masks for each stream.
