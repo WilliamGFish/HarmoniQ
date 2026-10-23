@@ -1,3 +1,5 @@
+#define _USE_MATH_DEFINES
+#include <math.h>
 #include "picoedge.h"
 
 #include "picoedge_model.h"
@@ -150,6 +152,10 @@ int pe_init(struct pe_context *ctx, uint8_t node_id, pe_event_cb_t cb, void *use
     ctx->node_id = node_id;
     ctx->active_feats_mask = PE_DEFAULT_ACTIVE_FEATS_MASK;
     ctx->op_mode = PE_MODE_MONITOR;
+    ctx->goertzel_coeffs[0] = 1.902113f; // 0.05 fs
+    ctx->goertzel_coeffs[1] = 1.457937f; // 0.12 fs
+    ctx->goertzel_coeffs[2] = 0.000000f; // 0.25 fs
+    ctx->goertzel_coeffs[3] = -1.618034f; // 0.40 fs
 
 #ifdef __ZEPHYR__
     smf_set_initial(SMF_CTX(ctx), &pe_smf_states[PE_STATE_LEARNING]);
@@ -195,7 +201,7 @@ int pe_set_mode(struct pe_context *ctx, pe_op_mode_t mode, uint8_t target_fault_
 int pe_process_window(struct pe_context *ctx, const float *raw_sensor_window) {
     if (!ctx || !raw_sensor_window) return -1;
 
-    pe_extract_features_masked(raw_sensor_window, ctx->current_feats, ctx->active_feats_mask);
+    pe_extract_features_masked(raw_sensor_window, ctx->current_feats, ctx->active_feats_mask, ctx->goertzel_coeffs);
 
     if (ctx->op_mode == PE_MODE_LEARN_FAULT_CLASS) {
         pe_core_clf_learn(&ctx->clf, ctx->current_feats, ctx->target_learn_class);
@@ -217,4 +223,13 @@ int pe_process_window(struct pe_context *ctx, const float *raw_sensor_window) {
     }
     return 0;
 #endif
+}
+
+int pe_set_goertzel_freqs(struct pe_context *ctx, const float freqs_hz[4], float sample_rate_hz) {
+    if (!ctx || !freqs_hz || sample_rate_hz <= 0.0f) return -1;
+    for (int i = 0; i < 4; i++) {
+        float normalized_f = freqs_hz[i] / sample_rate_hz;
+        ctx->goertzel_coeffs[i] = 2.0f * cosf(2.0f * 3.14159265358979323846f * normalized_f);
+    }
+    return 0;
 }

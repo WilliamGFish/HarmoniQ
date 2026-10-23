@@ -67,6 +67,7 @@ struct pe_context {
     uint8_t          most_deviant_feat;
     uint8_t          anomaly_streak;
     uint8_t          recovery_streak;
+    float            goertzel_coeffs[4];
     uint8_t          flags;                // Bit 0: just_primed, Bit 1: from_fault, Bit 2: silent_return
     uint16_t         seq_num;
 };
@@ -81,5 +82,6 @@ int pe_import_knowledge(struct pe_context *ctx, const uint8_t *in_buf, size_t le
 ssize_t pe_export_centroid(const struct pe_context *ctx, bool is_fault_proto, uint8_t slot_id, uint8_t *out_buf, size_t max_len);
 int pe_import_centroid(struct pe_context *ctx, const uint8_t *in_buf, size_t len);
 int pe_hotload_weights(struct pe_context *ctx, const uint8_t *pe_pkg_blob, size_t len);
+int pe_set_goertzel_freqs(struct pe_context *ctx, const float freqs_hz[4], float sample_rate_hz);
 
 #endif // PICOEDGE_H

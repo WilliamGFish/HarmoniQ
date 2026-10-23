@@ -2,9 +2,7 @@
 #include <math.h>
 #include <string.h>
 
-static const float GOERTZEL_COEFFS[4] = { 1.902113f, 1.457937f, 0.000000f, -1.618034f };
-
-void pe_extract_features_masked(const float *raw_window, float *out_feats, uint64_t active_feats_mask) {
+void pe_extract_features_masked(const float *raw_window, float *out_feats, uint64_t active_feats_mask, const float goertzel_coeffs[4]) {
     for (int ch = 0; ch < CONFIG_PE_AXES; ch++) {
         int base = ch * PE_FEATS_PER_AXIS;
         if (((active_feats_mask >> base) & 0x3FFU) == 0) {
@@ -43,7 +41,7 @@ void pe_extract_features_masked(const float *raw_window, float *out_feats, uint6
 
             if (spec_mask != 0) {
                 for (int b = 0; b < 4; b++) {
-                    float s0 = diff + GOERTZEL_COEFFS[b] * s1[b] - s2[b];
+                    float s0 = diff + goertzel_coeffs[b] * s1[b] - s2[b];
                     s2[b] = s1[b];
                     s1[b] = s0;
                 }
@@ -65,7 +63,7 @@ void pe_extract_features_masked(const float *raw_window, float *out_feats, uint6
         out_feats[base + 5] = zcr;
 
         for (int b = 0; b < 4; b++) {
-            float power = s1[b]*s1[b] + s2[b]*s2[b] - GOERTZEL_COEFFS[b]*s1[b]*s2[b];
+            float power = s1[b]*s1[b] + s2[b]*s2[b] - goertzel_coeffs[b]*s1[b]*s2[b];
             out_feats[base + 6 + b] = log10f((fabsf(power) / (float)CONFIG_PE_WINDOW_SIZE) + 1.0f);
         }
 

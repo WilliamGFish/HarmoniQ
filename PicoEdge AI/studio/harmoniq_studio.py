@@ -12,6 +12,50 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import accuracy_score
 import sys
 
+def transpile_linearsvc(model, mask, scaler):
+    c_code = []
+    c_code.append(f'#define PE_DEFAULT_ACTIVE_FEATS_MASK {mask}ULL')
+    c_code.append('')
+    c_code.append('static inline uint8_t pe_generated_model_predict(const float *feats, float *out_confidence) {')
+    c_code.append('    float f_std[30];')
+
+    for i in range(30):
+        if (mask & (1 << i)):
+            c_code.append(f'    f_std[{i}] = (feats[{i}] - {scaler.mean_[i]:.6f}f) / {scaler.scale_[i]:.6f}f;')
+        else:
+            c_code.append(f'    f_std[{i}] = 0.0f;')
+
+    c_code.append('')
+    num_classes = model.coef_.shape[0]
+    c_code.append(f'    float logit[{num_classes}];')
+
+    for c in range(num_classes):
+        c_code.append(f'    logit[{c}] = {model.intercept_[c]:.6f}f;')
+        for i in range(30):
+            if (mask & (1 << i)) and abs(model.coef_[c, i]) > 1e-6:
+                c_code.append(f'    logit[{c}] += f_std[{i}] * {model.coef_[c, i]:.6f}f;')
+
+    c_code.append('')
+    c_code.append('    float max_logit = logit[0];')
+    c_code.append('    uint8_t best_c = 0;')
+    c_code.append(f'    for (uint8_t c = 1; c < {num_classes}; c++) {{')
+    c_code.append('        if (logit[c] > max_logit) {')
+    c_code.append('            max_logit = logit[c];')
+    c_code.append('            best_c = c;')
+    c_code.append('        }')
+    c_code.append('    }')
+    c_code.append('    if (out_confidence) {')
+    c_code.append(f'        float sum_exp = 0.0f;')
+    c_code.append(f'        for (uint8_t c = 0; c < {num_classes}; c++) {{')
+    c_code.append('            sum_exp += expf(logit[c] - max_logit);')
+    c_code.append('        }')
+    c_code.append('        *out_confidence = 100.0f / sum_exp;')
+    c_code.append('    }')
+    c_code.append('    return best_c;')
+    c_code.append('}')
+    return '\n'.join(c_code)
+
+
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 from generate_synthetic_data import generate_dataset
 
@@ -94,19 +138,15 @@ def main():
     coefs = best_model.coef_
     intercept = best_model.intercept_
 
+    c_model_func = transpile_linearsvc(best_model, mask, scaler)
     header_content = f"""#ifndef PICOEDGE_MODEL_H
 #define PICOEDGE_MODEL_H
 
 #include <stdint.h>
+#include <math.h>
 #include "picoedge_hal.h"
 
-#define PE_DEFAULT_ACTIVE_FEATS_MASK {mask}UL
-
-static inline uint8_t pe_generated_model_predict(const float *feats, float *out_confidence) {{
-    // Standin for transpiled model - returning a simple classification for compilation
-    *out_confidence = 0.95f;
-    return 0; // Default to class 0
-}}
+{c_model_func}
 
 #endif // PICOEDGE_MODEL_H
 """
@@ -129,7 +169,7 @@ static inline uint8_t pe_generated_model_predict(const float *feats, float *out_
     bias = np.zeros(6, dtype=np.float32)
     bias[:num_classes] = intercept
 
-    blob_format = "<IB3xI30f30f180f6f"
+    blob_format = "<IB3xQ30f30f180f6f"
     payload = struct.pack(blob_format, magic, num_classes, active_feats_mask,
                           *feat_mean, *feat_std, *weights.flatten(), *bias)
 

@@ -113,7 +113,7 @@ pip install -r studio/requirements.txt
     python3 studio/harmoniq_studio.py --out-header include/picoedge_model.h --out-pkg-header my_app/src/test_pkg_blob.h
     ```
 3.  **Output 1 (`include/picoedge_model.h`):** The transpiled static C model.
-4.  **Output 2 (`test_pkg_blob.h`):** A binary `.pe_pkg` payload that can be sent over MQTT/LwM2M.
+4.  **Output 2 (`test_pkg_blob.h`):** A binary `.pe_pkg` payload that can be sent over DECT NR+ using Zenoh.
 
 ### Hotloading OTA Weights
 
