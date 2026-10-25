@@ -6,7 +6,7 @@ While the V1 implementation of the PicoEdge AI suite successfully realizes the c
 
 *   **True Model Transpilation to C99:**
     Currently, the AutoML pipeline (`harmoniq_studio.py`) identifies the optimal ML architecture via 5-Fold Cross Validation and generates the `.pe_pkg` binary payload for hotloading. However, the static `#include "picoedge_model.h"` fallback generation uses a mock.
-    *   **Action Item:** Implement AST-based C99 generation natively in Python. For `DecisionTreeClassifier`, traverse the `tree_` attribute to generate nested `if/else` logic. For `LinearSVC`, statically embed the `coef_` and `intercept_` arrays directly into the header.
+    *   **Action Item:** Implement AST-based C99 generation natively in Python for `DecisionTreeClassifier`, traversing the `tree_` attribute to generate nested `if/else` logic. (Note: True C99 transpilation for `LinearSVC` is already implemented and working).
 *   **Dynamic Goertzel Frequencies:**
     The feature extractor currently hardcodes 4 Goertzel bins at normalized frequencies $f/f_s \in \{0.05, 0.12, 0.25, 0.40\}$.
     *   **Action Item:** Allow these coefficients to be computed at runtime during `pe_init` based on a user-provided array of frequencies and the actual sensor sampling rate, allowing targeting of specific bearing defect frequencies (BPFO, BPFI, BSF).
@@ -32,4 +32,4 @@ While the V1 implementation of the PicoEdge AI suite successfully realizes the c
 ## 4. Maintenance & MISRA Compliance
 
 *   **Static Code Analysis:**
-    *   **Action Item:** Integrate `cppcheck` and a MISRA-C checker into the GitHub Actions CI pipeline to ensure zero dynamic allocation, floating point safety, and pointer validity across all `libpicoedge_ai.a` source files.
+    *   **Action Item:** Further harden the `cppcheck` CI pipeline to include strict MISRA-C 2012 compliance checking.

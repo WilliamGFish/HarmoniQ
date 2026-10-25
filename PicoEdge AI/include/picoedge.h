@@ -1,6 +1,7 @@
-#include <sys/types.h>
+
 #ifndef PICOEDGE_H
 #define PICOEDGE_H
+#include <sys/types.h>
 
 #include <stdint.h>
 #include <stddef.h>
